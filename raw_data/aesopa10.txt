@@ -258,7 +258,7 @@ From The PaperLess Readers Club, Houston (713) 977-9505 (BBS)
 1-21                                    22-42
   The Cock and the Pearl                  The Frog and the Ox
   The Wolf and the Lamb                   Androcles
-  The Dog and the Shadow                  The Bat, the Birds, and the Beasts
+  The Dog and the Shadow                  *The Bat, the Birds, and the Beasts
   The Lion's Share                        The Hart and the Hunter
   The Wolf and the Crane                  The Serpent and the File
   The Man and the Serpent                 The Man and the Wood
@@ -266,7 +266,7 @@ From The PaperLess Readers Club, Houston (713) 977-9505 (BBS)
   The Fox and the Crow                    The Belly and the Members
   The Sick Lion                           The Hart in the Ox-Stall
   The Ass and the Lapdog                  The Fox and the Grapes
-  The Lion and the Mouse                  The Horse, Hunter, and Stag
+  The Lion and the Mouse                  *The Horse, Hunter, and Stag
   The Swallow and the Other Birds         The Peacock and Juno
   The Frogs Desiring a King               The Fox and the Lion
   The Mountains in Labour                 The Lion and the Statue
@@ -285,7 +285,7 @@ From The PaperLess Readers Club, Houston (713) 977-9505 (BBS)
   The Nurse and the Wolf                  The One-Eyed Doe
   The Tortoise and the Birds              Belling the Cat
   The Two Crabs                           The Hare and the Tortoise
-  The Ass in the Lion's Skin              The Old Man and Death
+  The Ass in the Lion's Skin              *The Old Man and Death
   The Two Fellows and the Bear            The Hare With Many Friends
   The Two Pots                            The Lion in Love
   The Four Oxen and the Lion              The Bundle of Sticks
@@ -298,7 +298,7 @@ From The PaperLess Readers Club, Houston (713) 977-9505 (BBS)
   The Fox, the Cock, and the Dog          The Trumpeter Taken Prisoner
   The Wind and the Sun                    The Buffoon and the Countryman
   Hercules and the Waggoner               The Old Woman and the Wine-Jar
-  The Man, the Boy, and the Donkey        The Fox and the Goat
+  *The Man, the Boy, and the Donkey        The Fox and the Goat
 
 
 Aesop's Fables
@@ -793,7 +793,7 @@ Gratitude is the sign of noble souls.
 
 
 
-The Bat, the Birds, and the Beasts
+  The Bat, the Birds, and the Beasts
 
 
 A great conflict was about to come off between the Birds and

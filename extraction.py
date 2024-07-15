@@ -1,85 +1,96 @@
+# Contains functions that deal with the extraction of documents from a text file (see PR01)
+
 import json
 import re
 from document import Document
 
-
-def extract_document_collection(file_path: str) -> list[Document]:
+def extract_collection(source_file_path: str) -> list[Document]:
     """
-    Reads a text file and extracts individual fables or stories.
-    :param file_path: Path to the text file containing the fables.
-    :return: A list of Document objects.
+    Loads a text file (aesopa10.txt) and extracts each of the listed fables/stories from the file.
+    :param source_file_name: File name of the file that contains the fables
+    :return: List of Document objects
     """
-    documents = []  # List to store the Document objects.
+   
 
-    # Open and read the file content
-    with open(file_path, 'r') as file:
-        content = file.read()
+    catalog = []  # This dictionary will store the document raw_data.
+    Documents = []
+    file = open(source_file_path,'r', encoding='utf-8')
+    catalog = file.read()
+    # catalog = repr(catalog)
+    # print(repr(catalog)) 
+   
+   # Remove title and introductory part
 
-    # Split content into fables based on three consecutive newline characters
-    fables = re.split(r'\n\s*\n\s*\n', content)
+    catalog = re.sub(r'^.*?(?=Aesop\'s Fables)', '', catalog, flags=re.DOTALL | re.MULTILINE)
 
-    # Skip the introductory and table of contents sections
-    fables = fables[1:]
+    # Split the content into individual fables
 
-    for index, fable in enumerate(fables):
-        sections = fable.split('\n\n', 1)
-        if len(sections) == 2:
-            title = sections[0].strip()
-            full_text = sections[1].replace('\n', ' ').strip()
-            terms = full_text.split()
-            document = Document()
-            document.document_id = index
-            document.title = title
-            document.raw_text = full_text
-            document.terms = terms
-            documents.append(document)
+    txt = catalog.split('\n\n\n\n')
+    # print(txt[1:])
 
-    return documents
+    c=1
+
+    for i in txt[1:]:
+        
+        title = i.split('\n\n\n')
+        d = Document()
+        d.title = title[0]
+        d.document_id = c
+        d.raw_text = title[1]
+        d.terms = d.raw_text.split()  + d.title.split()    
+        Documents.append(d)   
+        c+=1
+
+   
+
+    return Documents
 
 
-def save_documents_as_json(documents: list[Document], file_path: str) -> None:
+def save_collection_as_json(collection: list[Document], file_path: str) -> None:
     """
-    Saves a list of Document objects to a JSON file.
-    :param documents: List of Document objects to save.
-    :param file_path: Path to the JSON file.
+    Saves the collection to a JSON file.
+    :param collection: The collection to store (= a list of Document objects)
+    :param file_path: Path of the JSON file
     """
-    serializable_docs = []
-    for document in documents:
-        serializable_docs.append({
+
+    serializable_collection = []
+    for document in collection:
+        serializable_collection += [{
             'document_id': document.document_id,
             'title': document.title,
             'raw_text': document.raw_text,
             'terms': document.terms,
             'filtered_terms': document.filtered_terms,
             'stemmed_terms': document.stemmed_terms
-        })
+        }]
 
     with open(file_path, "w") as json_file:
-        json.dump(serializable_docs, json_file)
+        json.dump(serializable_collection, json_file)
 
 
-def load_documents_from_json(file_path: str) -> list[Document]:
+def load_collection_from_json(file_path: str) -> list[Document]:
     """
-    Loads a list of Document objects from a JSON file.
-    :param file_path: Path to the JSON file.
-    :return: List of Document objects.
+    Loads the collection from a JSON file.
+    :param file_path: Path of the JSON file
+    :return: list of Document objects
     """
     try:
         with open(file_path, "r") as json_file:
             json_collection = json.load(json_file)
 
-        documents = []
-        for doc_data in json_collection:
+        collection = []
+        for doc_dict in json_collection:
             document = Document()
-            document.document_id = doc_data.get('document_id')
-            document.title = doc_data.get('title')
-            document.raw_text = doc_data.get('raw_text')
-            document.terms = doc_data.get('terms')
-            document.filtered_terms = doc_data.get('filtered_terms')
-            document.stemmed_terms = doc_data.get('stemmed_terms')
-            documents.append(document)
+            document.document_id = doc_dict.get('document_id')
+            document.title = doc_dict.get('title')
+            document.raw_text = doc_dict.get('raw_text')
+            document.terms = doc_dict.get('terms')
+            document.filtered_terms = doc_dict.get('filtered_terms')
+            document.stemmed_terms = doc_dict.get('stemmed_terms')
+            collection += [document]
 
-        return documents
+        return collection
     except FileNotFoundError:
-        print('No existing collection found. Starting with an empty collection.')
+        print('No collection was found. Creating empty one.')
         return []
+

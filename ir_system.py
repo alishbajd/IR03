@@ -18,7 +18,7 @@
 
 import json
 import os
-
+import re
 import cleanup
 import extraction
 import models
@@ -45,7 +45,7 @@ class InformationRetrievalSystem(object):
 
         # Collection of documents, initially empty.
         try:
-            self.collection = extraction.load_documents_from_json(COLLECTION_PATH)
+            self.collection = extraction.load_collection_from_json(COLLECTION_PATH)
         except FileNotFoundError:
             print('No previous collection was found. Creating empty one.')
             self.collection = []
@@ -60,6 +60,7 @@ class InformationRetrievalSystem(object):
 
         self.model = None  # Saves the current IR model in use.
         self.output_k = 5  # Controls how many results should be shown for a query.
+
 
     def main_menu(self):
         """
@@ -115,10 +116,14 @@ class InformationRetrievalSystem(object):
                     results = self.signature_search(query, stemming, stop_word_filtering)
                 else:
                     results = self.basic_query_search(query, stemming, stop_word_filtering)
+                
+                print(f'retreived documents: {results[1]}')
 
-                # Output of results:
-                for (score, document) in results:
-                    print(f'{score}: {document}')
+      
+
+
+                # for (score, document) in results:
+                #     print(f'{score}: {document}')
 
                 # Output of quality metrics:
                 print()
@@ -129,17 +134,17 @@ class InformationRetrievalSystem(object):
                 # Extract document collection from text file.
 
                 raw_collection_file = os.path.join(RAW_DATA_PATH, 'aesopa10.txt')
-                self.collection = extraction.extract_document_collection(raw_collection_file)
+                self.collection = extraction.extract_collection(raw_collection_file)
                 assert isinstance(self.collection, list)
                 assert all(isinstance(d, Document) for d in self.collection)
 
                 if input('Should stopwords be filtered? [y/N]: ') == 'y':
-                    cleanup.filter_collection(self.collection)
+                   self.collection = cleanup.filter_collection(self.collection)
 
                 if input('Should stemming be performed? [y/N]: ') == 'y':
-                    porter.stem_all_documents(self.collection)
+                    self.collection = porter.stem_all_documents(self.collection)
 
-                extraction.save_documents_as_json(self.collection, COLLECTION_PATH)
+                extraction.save_collection_as_json(self.collection, COLLECTION_PATH)
                 print('Done.\n')
 
             elif action_choice == CHOICE_UPDATE_STOP_WORDS:
@@ -222,7 +227,7 @@ class InformationRetrievalSystem(object):
         :return: List of tuples, where the first element is the relevance score and the second the corresponding
         document
         """
-        query_representation = self.model.document_to_representation(query)
+        query_representation = self.model.query_to_representation(query)
         document_representations = [self.model.document_to_representation(d, stop_word_filtering, stemming)
                                     for d in self.collection]
         scores = [self.model.match(dr, query_representation) for dr in document_representations]
@@ -240,7 +245,17 @@ class InformationRetrievalSystem(object):
         document
         """
         # TODO: Implement this function (PR03)
-        raise NotImplementedError('To be implemented in PR04')
+
+        query_list,seperators = self.model.query_to_representation(query)
+
+        query_representation = (query_list,seperators)
+
+        inverted_list = self.model.document_to_representation(self.collection,stop_word_filtering,stemming)
+
+        result = self.model.match(inverted_list,query_representation)
+        
+
+        return result
 
     def buckley_lewit_search(self, query: str, stemming: bool, stop_word_filtering: bool) -> list:
         """
@@ -252,7 +267,7 @@ class InformationRetrievalSystem(object):
         document
         """
         # TODO: Implement this function (PR04)
-        # raise NotImplementedError('To be implemented in PR04')
+        raise NotImplementedError('To be implemented in PR04')
 
     def signature_search(self, query: str, stemming: bool, stop_word_filtering: bool) -> list:
         """
@@ -266,13 +281,77 @@ class InformationRetrievalSystem(object):
         # TODO: Implement this function (PR04)
         raise NotImplementedError('To be implemented in PR04')
 
-    def calculate_precision(self, result_list: list[tuple]) -> float:
+    def calculate_precision(self,result_list: list[tuple]) -> float:
         # TODO: Implement this function (PR03)
-        pass  # raise NotImplementedError('To be implemented in PR03')
+        
+
+        data_dict = {}
+        file_path = 'raw_data/ground_truth.txt'
+      
+        pattern = re.compile(r'(?P<key>\w+)\s*-\s*(?P<values>(?:\d+,\s*)*\d+)')
+        with open(file_path, 'r') as file:
+            for line in file:
+                # Skip empty lines
+                match = pattern.match(line)
+                if  match:
+                    GT = line.strip().split(' - ')
+                    value = []
+                    key = GT[0]
+                    value = list(map(int, GT[1].split(', ')))
+                    data_dict[key] = value
+        
+        retrieved_docs = set()
+        ground_truth = set()
+        for i in result_list[0]:
+
+            if i in data_dict.keys(): 
+
+                ground_truth = set(ground_truth).union(set(data_dict[i]))
+
+        retrieved_docs = set(result_list[1])
+
+        relevent_retrieved = ground_truth.intersection(retrieved_docs)
+
+      
+        precision = len(relevent_retrieved) / len(retrieved_docs) if relevent_retrieved else -1
+
+        return precision
+       
+
 
     def calculate_recall(self, result_list: list[tuple]) -> float:
-        # TODO: Implement this function (PR03)
-        pass  # raise NotImplementedError('To be implemented in PR03')
+
+        data_dict = {}
+        file_path = 'raw_data/ground_truth.txt'
+      
+        pattern = re.compile(r'(?P<key>\w+)\s*-\s*(?P<values>(?:\d+,\s*)*\d+)')
+        with open(file_path, 'r') as file:
+            for line in file:
+                # Skip empty lines
+                match = pattern.match(line)
+                if  match:
+                    GT = line.strip().split(' - ')
+                    value = []
+                    key = GT[0]
+                    value = list(map(int, GT[1].split(', ')))
+                    data_dict[key] = value
+        
+        retrieved_docs = set()
+        ground_truth = set()
+        for i in result_list[0]:
+
+            if i in data_dict.keys(): 
+
+                ground_truth = set(ground_truth).union(set(data_dict[i]))
+
+        retrieved_docs = set(result_list[1])
+
+        relevent_retrieved = ground_truth.intersection(retrieved_docs)
+
+      
+        recall = len(relevent_retrieved) / len(ground_truth) if relevent_retrieved else -1
+
+        return recall
 
 
 if __name__ == '__main__':
